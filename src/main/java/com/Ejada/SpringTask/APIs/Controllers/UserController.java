@@ -3,6 +3,7 @@ package com.Ejada.SpringTask.APIs.Controllers;
 
 import com.Ejada.SpringTask.Application.Models.User;
 import com.Ejada.SpringTask.Application.Services.Impl.UserServicesImpl;
+import com.Ejada.SpringTask.Application.Services.UserServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     @Autowired
-    private UserServicesImpl userServices;
+    private UserServices userServices;
 
     @GetMapping("/user")
     public void getAllUsers() {
