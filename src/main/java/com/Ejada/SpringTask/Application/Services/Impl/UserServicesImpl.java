@@ -18,7 +18,7 @@ public class UserServicesImpl implements UserServices {
     public void validateUserData(User user) {
 
         // ID must be positive
-        if (user.getId() < 0) {
+        if (user.getId() <= 0) {
             throw new ApiRequestExceptions("User ID must be a positive number.");
         }
 
