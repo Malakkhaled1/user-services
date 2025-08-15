@@ -6,7 +6,4 @@ public class ApiRequestExceptions extends RuntimeException{
         super(message);
     }
 
-//    public ApiRequestExceptions(String message, Throwable cause) {
-//        super(message, cause);
-//    }
 }

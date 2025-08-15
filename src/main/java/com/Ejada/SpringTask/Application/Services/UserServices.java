@@ -1,19 +1,22 @@
 package com.Ejada.SpringTask.Application.Services;
 
 import com.Ejada.SpringTask.Application.Models.User;
+import com.Ejada.SpringTask.Application.Models.UserCreateRequest;
+import com.Ejada.SpringTask.Application.Models.UserRes;
+import com.Ejada.SpringTask.Application.Models.UserResList;
+import org.springframework.stereotype.Component;
 
-import java.util.List;
-
+@Component
 public interface UserServices {
-    List<User> getAllUsers();
+    UserResList getAllUsers();
 
-    void addUser(User user);
+    UserRes addUser(UserCreateRequest request);
 
-    User getUserbyId(int id);
+    UserRes getUserbyId(Long id);
 
-    void deleteUserById(int id);
+    void deleteUserById(Long id);
 
-    void updateUserById(int userId, User user);
+    UserRes updateUser(Long userId, UserCreateRequest request);
 
 //    User findByName(String userName);
 }

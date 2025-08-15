@@ -2,12 +2,16 @@ package com.Ejada.SpringTask.Application.Services.Impl;
 
 import com.Ejada.SpringTask.Application.Exceptions.ApiRequestExceptions;
 import com.Ejada.SpringTask.Application.Models.User;
+import com.Ejada.SpringTask.Application.Models.UserCreateRequest;
+import com.Ejada.SpringTask.Application.Models.UserRes;
+import com.Ejada.SpringTask.Application.Models.UserResList;
 import com.Ejada.SpringTask.Application.Repositories.UserRepo;
 import com.Ejada.SpringTask.Application.Services.UserServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserServicesImpl implements UserServices {
@@ -15,52 +19,48 @@ public class UserServicesImpl implements UserServices {
     @Autowired
     private UserRepo userRepo;
 
-    public void validateUserData(User user) {
+    public UserResList getAllUsers(){
 
-        // ID must be positive
-        if (user.getId() <= 0) {
-            throw new ApiRequestExceptions("User ID must be a positive number.");
-        }
+        List<User> users = userRepo.findAll();
+        UserResList userResList = new UserResList();
 
-        // Password length between 2 and 10
-        if (user.getPassword() == null || user.getPassword().length() < 2 || user.getPassword().length() > 10) {
-            throw new ApiRequestExceptions("Password length must be between 2 and 10 characters.");
-        }
+        List<UserRes> usersList = users.stream()
+                .map(UserRes::convertToUserRes)
+                .toList();
 
-        // Name should not be numeric
-        if (user.getName() == null || user.getName().matches("\\d+")) {
-            throw new ApiRequestExceptions("Name cannot be a number.");
-        }
+        userResList.setUserResList(usersList);
 
-        // Email should contain @
-        if (user.getEmail() == null || !user.getEmail().contains("@")) {
-            throw new ApiRequestExceptions("Invalid Email address.");
-        }
+        return userResList;
     }
 
-    public List<User> getAllUsers(){
-        return userRepo.findAll();
-    }
+    public UserRes addUser(UserCreateRequest request){
+        Optional<User> existingUser = userRepo.findByEmailOrUserName(
+                request.getEmail(),
+                request.getUserName()
+        );
 
-    public void addUser(User user){
-
-        // User already exists
-        if (userRepo.existsById(user.getId())) {
-            throw new ApiRequestExceptions("User with ID " + user.getId() + " already exists.");
+        if (existingUser.isPresent()) {
+            throw new ApiRequestExceptions("Username or Email already exists.");
         }
 
-        validateUserData(user);
-        System.out.println(user);
+        User user = new User();
+        user.setUserName(request.getUserName());
+        user.setPassword(request.getPassword());
+        user.setEmail(request.getEmail());
 
         userRepo.save(user);
+
+        return UserRes.convertToUserRes(user);
     }
 
-    public User getUserbyId(int userId){
-        return userRepo.findById(userId).
-                orElseThrow(() -> new ApiRequestExceptions("User with ID " + userId + " not found"));
+    public UserRes getUserbyId(Long userId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new ApiRequestExceptions("User with ID " + userId + " not found"));
+        return UserRes.convertToUserRes(user);
     }
 
-    public void deleteUserById(int userId){
+
+    public void deleteUserById(Long userId){
         if (!userRepo.existsById(userId)) {
             throw new ApiRequestExceptions("User with ID " + userId + " does not exist.");
         }
@@ -68,21 +68,16 @@ public class UserServicesImpl implements UserServices {
         userRepo.deleteById(userId);
     }
 
-    public void updateUserById(int userId, User user){
-        validateUserData(user);
+    public UserRes updateUser(Long userId, UserCreateRequest request) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new ApiRequestExceptions("User with ID " + userId + " does not exist."));
 
-        if (!userRepo.existsById(userId)) {
-            throw new ApiRequestExceptions("User with ID " + userId + " does not exist.");
-        }
+        user.setUserName(request.getUserName() != null ? request.getUserName() : user.getUserName());
+        user.setPassword(request.getPassword() != null ? request.getPassword() : user.getPassword());
+        user.setEmail(request.getEmail() != null ? request.getEmail() : user.getEmail());
 
-        if (user.getId() != userId) {
-            throw new ApiRequestExceptions("Updating the user ID is not allowed.");
-        }
-
-        userRepo.save(user);
+        User updatedUser = userRepo.save(user);
+        return UserRes.convertToUserRes(updatedUser);
     }
 
-    public User findByName(String userName){
-        return userRepo.findByName(userName);
-    }
 }
